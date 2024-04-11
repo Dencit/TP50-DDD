@@ -1,0 +1,12 @@
+apache    6379  0.0  0.1 353176 16972 ?        R    15:33   0:00 php7 /alidata/www/zhanchi/think queue:listen --queue UserLogin
+apache    7143  0.1  0.2 353176 33876 ?        S    Jun16  18:58 php7 /alidata/www/zhanchi/think queue:listen --queue UserLogin
+apache   10009  0.0  0.2 353176 33892 ?        S    Jun16  13:33 php7 /alidata/www/zhanchi/think queue:listen --queue send_resume_diagnosis_message
+apache   12486  0.0  0.2 353176 33888 ?        S    Jun16  13:44 php7 /alidata/www/zhanchi/think queue:listen --queue automaticUserAuthQueue
+apache   12487  0.0  0.2 353176 33888 ?        S    Jun16  13:24 php7 /alidata/www/zhanchi/think queue:listen --queue automaticUserAuthQueue
+apache   12513  0.0  0.2 353176 35212 ?        S    Jun16  16:14 php7 /alidata/www/zhanchi/think queue:listen
+apache   12514  0.0  0.2 353176 33888 ?        S    Jun16  15:54 php7 /alidata/www/zhanchi/think queue:listen
+apache   12517  0.0  0.2 353176 33888 ?        R    Jun16  16:19 php7 /alidata/www/zhanchi/think queue:listen
+apache   12519  0.0  0.2 353176 33888 ?        S    Jun16  16:04 php7 /alidata/www/zhanchi/think queue:listen
+apache   13127  0.0  0.2 353176 33888 ?        S    Jun16  13:34 php7 /alidata/www/zhanchi/think queue:listen --queue send_career_counseling_message
+apache   13683  0.0  0.2 353176 33876 ?        S    Jun16  14:52 php7 /alidata/www/zhanchi/think queue:listen --queue pushUserInfo
+apache   27907  0.0  0.2 359504 36840 ?        S    Jun22   3:29 /usr/local/bin/php7 /alidata/www/zhanchi/think InsertUserActionLog

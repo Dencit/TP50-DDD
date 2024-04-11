@@ -1,0 +1,30 @@
+#!/usr/bin/env php
+<?php
+// +----------------------------------------------------------------------
+// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2006-2016 http://thinkphp.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+// +----------------------------------------------------------------------
+// | Author: yunwuxin <448901948@qq.com>
+// +----------------------------------------------------------------------
+
+// 定义项目路径
+define('APP_PATH', __DIR__ . '/application/');
+
+// 加载框架引导文件
+//require __DIR__.'/thinkphp/console.php';
+
+
+//# /thinkphp/console.php 框架引导文件修改
+require __DIR__ . '/thinkphp/base.php';
+
+think\App::initCommon();
+//$console = think\Console::init(false); //旧的框架类
+$console = extend\think\Console::init(false);//继承旧的 修改后的框架类
+$console->setCatchExceptions(true);
+
+$console->run();
+
+//#

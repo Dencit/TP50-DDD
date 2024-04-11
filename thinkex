@@ -1,0 +1,334 @@
+#!/usr/bin/env php
+<?php
+
+namespace think;
+
+// 定义应用目录
+define('APP_PATH', __DIR__ . '/application/');
+// 加载基础文件
+require __DIR__ . '/thinkphp/base.php';
+// 执行应用
+App::initCommon();
+
+$mysql = Config::get()['database'];
+
+$opt = [
+    'debug'           => false,//默认关闭,demo生成的模板,未使用到的会注释掉,需要取消注释.
+    'auto_multi_app'  => false, //默认关闭多应用模式, 路由目录在根目录, 开启会把路由目录写在模块里.
+    'type'            => 'mysql',
+    'hostname'        => $mysql["hostname"], 'port' => $mysql["hostport"],
+    'database'        => $mysql["database"], 'prefix' => $mysql["prefix"],
+    'username'        => $mysql["username"], 'password' => $mysql["password"],
+    'root_path'       => root_path() . '', //代码生成目录,同级必须存在demo模板 供自动复制
+    'app_path'        => base_path() . '', //应用层代码-生成目录,同级必须存在demo模板 供自动复制
+    'domain_path'     => root_path() . 'domain',//领域层代码-生成目录,同级必须存在demo模板 供自动复制
+    'test_path'       => root_path() . 'tests', //测试代码生成目录,同级必须存在demo测试模板 供自动复制
+    'code_block'      => ['c', 'u', 'r', 'd', 'bc', 'bu', 'br', 'bd', 'cj', 'cmd',], //默认生成代码块: c,u,r,d,bc,bu,bd = 增,改,读,删,批增,批改,批读,批删,增队列,指令`
+    'code_block_curr' => [] //指定生成代码块
+];
+
+//print_r( root_path() ); die;//
+require_once "extend/thinkex/ThinkEx.php";
+require_once "extend/thinkex/PdoDB.php";
+require_once "extend/thinkex/ContentReplace.php";
+
+use extend\thinkex\ThinkEx;
+
+$thinkex = new ThinkEx($opt);
+
+//控制台逻辑
+switch ($argv[1]) {
+    default :
+        return false;
+        break;
+    case "module:make":
+        if ($argv[2]) {
+            $moduleName = $argv[2];
+            $folders    = ['port\\controller', 'error', 'enum', 'port\\request', 'srv', 'port\\logic', 'port\\trans'];
+            $thinkex->makeFolderByArr($moduleName, $folders);
+            usleep(100);
+            $thinkex->setErrorFile($moduleName, '');
+            $result = $thinkex->setRoute($moduleName, '');
+        }
+        break;
+    case "module:base":
+        $moduleName = $argv[3];
+        $childName  = ucwords($argv[2]);
+
+        $codeBlockStr = $argv[4] ?? '';
+        //指定生成代码块
+        $thinkex->setCodeBlockCurr($codeBlockStr);
+
+        $folders = ['port\\controller', 'error', 'enum', 'port\\request', 'srv', 'port\\logic', 'port\\trans'];
+        $thinkex->makeFolderByArr($moduleName, $folders);
+        usleep(100);
+
+        $thinkex->setDocFile($moduleName, $childName);
+
+        $thinkex->setEnumFile($moduleName, $childName);
+        $thinkex->setErrorFile($moduleName, $childName);
+
+        $thinkex->setControllerFile($moduleName, $childName);
+        $thinkex->setRequestFile($moduleName, $childName);
+
+        $thinkex->setSrvFile($moduleName, $childName);
+        $thinkex->setLogicFile($moduleName, $childName);
+
+        $result = $thinkex->setTransFile($moduleName, $childName);
+
+        if ($result) {
+            $msg = "Module:Base " . $moduleName . " created successfully";
+            $thinkex->console($msg, "yellow");
+        }
+        break;
+    case "module:base-on":
+        $moduleName = $argv[3];
+        $childName  = ucwords($argv[2]);
+
+        //指定生成代码块
+        $codeBlockStr = $argv[4] ?? '';
+
+        //数据库配置
+        $dbOptStr = null;
+        if (isset($argv[5])) {
+            $dbOptStr = $argv[5] ?? 'database';
+        }
+        if (isset($argv[6])) {
+            $opt['prefix'] = $argv[6];
+            $thinkex       = new ThinkEx($opt);
+        }
+
+        //指定生成代码块
+        $thinkex->setCodeBlockCurr($codeBlockStr);
+
+        $folders = ['port\\controller', 'error', 'enum', 'port\\request', 'repository', 'model', 'edoc', 'srv', 'port\\logic', 'port\\trans'];
+        $thinkex->makeFolderByArr($moduleName, $folders);
+        usleep(100);
+
+        $thinkex->setDocFile($moduleName, $childName);
+
+        $thinkex->setEnumFile($moduleName, $childName, 1);
+        $thinkex->setErrorFile($moduleName, $childName, 1);
+
+        $thinkex->setControllerFile($moduleName, $childName, 1, $dbOptStr);
+        $thinkex->setRequestFile($moduleName, $childName, 1, $dbOptStr);
+
+        $thinkex->setSrvFile($moduleName, $childName, 1, $dbOptStr);
+        $thinkex->setLogicFile($moduleName, $childName, 1, $dbOptStr);
+
+        $thinkex->setRepositoryFile($moduleName, $childName, 1, $dbOptStr);
+        $thinkex->setModelFile($moduleName, $childName, 1, $dbOptStr);
+
+        $result = $thinkex->setTransFile($moduleName, $childName, 1, $dbOptStr);
+
+        if ($result) {
+            $msg = "Module:Base " . $moduleName . " created successfully";
+            $thinkex->console($msg, "yellow");
+        }
+        break;
+
+    case "module:job":
+        $moduleName = $argv[3];
+        $childName  = ucwords($argv[2]);
+
+        $folders = ['job'];
+        $thinkex->makeFolderByArr($moduleName, $folders);
+        usleep(100);
+
+        $result = $thinkex->setSaveJobFile($moduleName, $childName);
+
+        if ($result) {
+            $msg = "Module:Job " . $moduleName . " created successfully";
+            $thinkex->console($msg, "yellow");
+        }
+        break;
+    case "module:job-on":
+        $moduleName = $argv[3];
+        $childName  = ucwords($argv[2]);
+
+        $folders = ['job'];
+        $thinkex->makeFolderByArr($moduleName, $folders);
+        usleep(100);
+
+        $result = $thinkex->setSaveJobFile($moduleName, $childName, 1);
+
+        if ($result) {
+            $msg = "Module:Job " . $moduleName . " created successfully";
+            $thinkex->console($msg, "yellow");
+        }
+        break;
+
+    case "module:cmd":
+        $moduleName = $argv[3];
+        $childName  = ucwords($argv[2]);
+
+        $folders = ['console'];
+        $thinkex->makeFolderByArr($moduleName, $folders);
+        usleep(100);
+
+        $result = $thinkex->setCmdFile($moduleName, $childName);
+
+        if ($result) {
+            $msg = "Module:Cmd " . $moduleName . " created successfully";
+            $thinkex->console($msg, "yellow");
+        }
+        break;
+
+    case "module:cmd-on":
+        $moduleName = $argv[3];
+        $childName  = ucwords($argv[2]);
+
+        $folders = ['console'];
+        $thinkex->makeFolderByArr($moduleName, $folders);
+        usleep(100);
+
+        $result = $thinkex->setCmdFile($moduleName, $childName, 1);
+
+        if ($result) {
+            $msg = "Module:Cmd " . $moduleName . " created successfully";
+            $thinkex->console($msg, "yellow");
+        }
+        break;
+
+    case "module:model":
+        $moduleName = $argv[3];
+        $childName  = ucwords($argv[2]);
+
+        $folders = ['error', 'enum', 'repository', 'model', 'edoc'];
+        $thinkex->makeFolderByArr($moduleName, $folders);
+        usleep(100);
+
+        $thinkex->setEnumFile($moduleName, $childName);
+        $thinkex->setErrorFile($moduleName, $childName);
+
+        $thinkex->setRepositoryFile($moduleName, $childName);
+        $result = $thinkex->setModelFile($moduleName, $childName);
+
+        if ($result) {
+            $msg = "Module:Model " . $moduleName . " created successfully";
+            $thinkex->console($msg, "yellow");
+        }
+        break;
+
+    case "module:model-on":
+        $moduleName = $argv[3];
+        $childName  = ucwords($argv[2]);
+
+        $dbOptStr = null;
+        if (isset($argv[4])) {
+            $dbOptStr = $argv[4] ?? 'database';
+        }
+        if (isset($argv[5])) {
+            $opt['prefix'] = $argv[5];
+            $thinkex       = new ThinkEx($opt);
+        }
+
+        $folders = ['error', 'enum', 'repository', 'model', 'edoc'];
+        $thinkex->makeFolderByArr($moduleName, $folders);
+        usleep(100);
+
+        $thinkex->setEnumFile($moduleName, $childName, 1);
+        $thinkex->setErrorFile($moduleName, $childName);
+
+        $thinkex->setRepositoryFile($moduleName, $childName, 1, $dbOptStr);
+        $result = $thinkex->setModelFile($moduleName, $childName, 1, $dbOptStr);
+
+        if ($result) {
+            $msg = "Module:Model-On " . $moduleName . " created successfully";
+            $thinkex->console($msg, "yellow");
+        }
+        break;
+
+    case "module:route":
+        $moduleName = $argv[3];
+        $childName  = ucwords($argv[2]);
+        $result     = $thinkex->setRoute($moduleName, $childName);
+        if ($result) {
+            $msg = "Module:Route " . $moduleName . " created successfully";
+            $thinkex->console($msg, "yellow");
+        }
+        break;
+    case "module:model-fields":
+        $moduleName = $argv[3];
+        $childName  = ucwords($argv[2]);
+
+        $dbOptStr = null;
+        if (isset($argv[4])) {
+            $dbOptStr = $argv[4] ?? 'database';
+        }
+        if (isset($argv[5])) {
+            $opt['prefix'] = $argv[5];
+            $thinkex       = new ThinkEx($opt);
+        }
+
+        $result = $thinkex->changeModelFields($moduleName, $childName, $dbOptStr);
+        if ($result) {
+            $msg = "Module:Model-UpFields " . $moduleName . " updated successfully";
+            $thinkex->console($msg, "yellow");
+        }
+        break;
+    case "module:trans-fields":
+        $moduleName = $argv[3];
+        $childName  = ucwords($argv[2]);
+
+        $dbOptStr = null;
+        if (isset($argv[4])) {
+            $dbOptStr = $argv[4] ?? 'database';
+        }
+        if (isset($argv[5])) {
+            $opt['prefix'] = $argv[5];
+            $thinkex       = new ThinkEx($opt);
+        }
+
+        $result = $thinkex->changeTransformerFields($moduleName, $childName, $dbOptStr);
+        if ($result) {
+            $msg = "Module:Trans-UpFields " . $moduleName . " updated successfully";
+            $thinkex->console($msg, "yellow");
+        }
+        break;
+
+    case "test:make":
+        if ($argv[2]) {
+            $moduleName = $argv[2];
+            $thinkex->makeTestFolder($moduleName, 1);
+        }
+        break;
+    case "test:base":
+        $moduleName = $argv[3];
+        $childName  = ucwords($argv[2]);
+
+        $thinkex->makeTestFolder($moduleName);
+
+        $result = $thinkex->setTestFile($moduleName, $childName);
+        //$result = $thinkex->setTestBehaviorFile($moduleName,$childName);
+
+        if ($result) {
+            $msg = "TestModule: " . $moduleName . " created successfully";
+            $thinkex->console($msg, "yellow");
+        }
+        break;
+    case "test:base-on":
+        $moduleName = $argv[3];
+        $childName  = ucwords($argv[2]);
+
+        $dbOptStr = null;
+        if (isset($argv[4])) {
+            $dbOptStr = $argv[4] ?? 'database';
+        }
+        if (isset($argv[5])) {
+            $opt['prefix'] = $argv[5];
+            $thinkex       = new ThinkEx($opt);
+        }
+
+        $thinkex->makeTestFolder($moduleName);
+
+        $result = $thinkex->setTestFile($moduleName, $childName, 1, $dbOptStr);
+        //$result = $thinkex->setTestBehaviorFile($moduleName,$childName,1,$dbOptStr);
+
+        if ($result) {
+            $msg = "TestModule: " . $moduleName . " created successfully";
+            $thinkex->console($msg, "yellow");
+        }
+        break;
+
+}

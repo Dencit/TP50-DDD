@@ -1,0 +1,24 @@
+#!/usr/bin/env php
+<?php
+namespace think;
+
+// 定义应用目录
+define('APP_PATH', __DIR__ . '/application/');
+// 加载基础文件
+require __DIR__ . '/thinkphp/base.php';
+// 执行应用
+App::initCommon();
+$console = Console::init(false);
+$console->setCatchExceptions(false);
+
+use schedule\Timer;
+
+//控制台逻辑
+switch ($argv[1]){
+    default : return false; break;
+    case "queue":
+        //easyTask 队列任务
+        $queueTimer =new Timer($argv);
+        $queueTimer->execute();
+        break;
+}
